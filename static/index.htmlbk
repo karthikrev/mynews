@@ -1,0 +1,130 @@
+<html ng-app="myApp">
+    <head>        
+        <!-- JQuery -->
+        <script src="https://code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script> 
+
+        <!-- Angular -->
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>      
+
+        <!-- Bootstrap -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+        <link href="css/bootstrap.css" media="screen" rel="stylesheet" type="text/css" />
+
+        <!-- Influxdb -->
+        <script type="text/javascript" src="http://get.influxdb.org/influxdb-latest.js"></script>   
+
+        <!-- My Custom Javascripts -->
+        <script src="js/default.js" type="text/javascript"></script>
+
+        <!-- Some custom style for widgets -->
+        <style type="text/css">
+        img { width: 100%; }
+        .modal-dialog { width: 75%}
+        .close{font-size: smaller; margin: 10px;}
+        h6, .h6 {
+            font-size: 13px;
+            margin-top: -10px;            
+        }
+        .col-lg-2 {cursor: pointer}
+        </style>
+
+
+
+        <script type="text/javascript">            
+            var myapp = angular.module('myApp', [])            
+            $(document).on("click", ".newsimg", function() { $(this).fadeTo('fast',0.2); })
+            myapp.controller('NewsController', [ "$scope", "$location", "$q", "$sce", function($scope, $location, $q, $sce) { 
+                $scope.news = Array()
+                influxdb = connect_to_db();
+                initialize_widgets(influxdb, $scope, $q);                  
+                $scope.renderHtml = function(html_code){return $sce.trustAsHtml(html_code);};
+                $scope.newsclicked = function(news){                    
+                    $scope.modal = news
+                    a = influxdb.query("select * from /.*/")
+                    console.log(news)
+                    del_query = "delete from " + news.table + " where news_link = \'" + news.news_link + "\'"
+                    console.log(del_query)
+                    //$http.get('/markread?feedurl=' + news.feed_url)
+                }
+
+            }])
+
+        </script>
+    </head>
+
+    <body ng-controller="NewsController">
+        <div class="container">
+            <div ng-repeat="newsprovider in news">   <!-- Table starts here -->
+                <h2>{{newsprovider.name}}</h2>
+                <hr>
+                <div class="row">
+                    <div class="col-lg-2" ng-repeat="widget in newsprovider.widgets">
+                      <div class="newsimg">
+                        <img ng-src="{{widget.img}}" height="15%" 
+                                class="panel panel-primary" data-toggle="modal" 
+                                data-target="#myModal" ng-click="newsclicked(widget)">
+                        <div class="panel-heading" style="height:10%" data-toggle="modal" data-target="#myModal" ng-click="newsclicked(widget)">
+                            <H6>{{widget.title}}</H6>                            
+                        </div>   
+                        </img>
+                      </div>
+                    </div>                                    
+                </div> <!-- End of row -->
+
+
+            </div> <!-- End of each news provider -->
+        </div> <!-- end of container -->
+
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h3 class="modal-title" id="myModalLabel">{{modal.title}}</h3>
+              </div>
+              <div class="modal-body" ng-bind-html="renderHtml(modal.content)">  </div>
+              <div class="modal-footer"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+    <!--
+        <div class="container">
+            <button type="button" class="close">Refresh</button> <br/><br/>
+            <div class="row">
+               <div class="col-lg-3" ng-repeat="news in allnews" >
+                <div class="panel panel-default">
+                    <a href="#" class="close" ng-click="markread(news.feed_url)"><span aria-hidden="true">&times;</span></a>
+                    <div class="panel-heading" data-toggle="modal" data-target="#myModal" ng-click="newsclicked(news)">    
+                        </br>                                             
+                        <img ng-src="{{news.img}}" height="20%">
+                    </div>
+                    <div class="panel-body" style="height:15%" data-toggle="modal" data-target="#myModal" ng-click="newsclicked(news)">
+                        <H5>{{news.title}}</H5>                        
+                    </div>                
+                </div>
+              </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h3 class="modal-title" id="myModalLabel">{{modal.title}}</h3>
+              </div>
+              <div class="modal-body" ng-bind-html="renderHtml(modal.content)">  </div>
+              <div class="modal-footer"></div>
+            </div>
+          </div>
+        </div>
+-->
+
+    </body>
+</html>
